@@ -47,13 +47,18 @@ const myTheme = themeQuartz.withParams({
   spacing: 4,
 });
 
-// Function for gradual red: lower value = more red, higher value = less red
-const getGradualRedStyle = (value, min, max) => {
+const getRedIntensity = (value, min, max) => {
   if (value == null) return {};
   const clampedValue = Math.max(min, Math.min(max, value));
   const intensity = 1 - (clampedValue - min) / (max - min); // 1 at min (red), 0 at max (white)
+  return intensity;
+};
+
+// Function for gradual red: lower value = more red, higher value = less red
+const getGradualRedStyle = (value, min, max) => {
+  const intensity = getRedIntensity(value, min, max); // 1 at min (red), 0 at max (white)
   return {
-    backgroundColor: `rgba(255, 0, 0, ${intensity})`,
+    // backgroundColor: `rgba(255, 0, 0, ${intensity})`,
     display: "inline-block",
     padding: "0 4px",
   };
@@ -158,6 +163,27 @@ const GeneralReport = () => {
       }
       return { whiteSpace: "pre" };
     },
+    cellRenderer: (params) => {
+      const field = params.colDef.field;
+      if (redColorRanges[field]) {
+        const { min, max, getValue } = redColorRanges[field];
+        const value = getValue(params);
+        const intensity = getRedIntensity(value, min, max);
+        if (typeof params.value !== "object") {
+          return (
+            <span
+              style={{
+                backgroundColor: `rgba(255, 0, 0, ${intensity})`,
+                padding: "4px 8px",
+                borderRadius: "4px",
+              }}
+            >
+              {params.value}
+            </span>
+          );
+        }
+      }
+    },
   };
 
   const issueCellRenderer = (params) => {
@@ -260,13 +286,17 @@ const GeneralReport = () => {
     {
       field: "חח",
       valueGetter: (params) =>
-        `חוליות: ${params.data?.["חוליות"] || 0}\nפינים: ${params.data?.["פינים"] || 0}\nטבעות: ${params.data?.["טבעות"] || 0}`,
+        `חוליות: ${params.data?.["חוליות"] || 0}\nפינים: ${
+          params.data?.["פינים"] || 0
+        }\nטבעות: ${params.data?.["טבעות"] || 0}`,
     },
 
     {
       field: "פקלים",
       valueGetter: (params) =>
-        `ערכת עזרה ראשונה: ${params.data?.["ערכת עזרה ראשונה"] ? "✓" : "✗"}\nפק"ל היגיינה: ${params.data?.['פק"ל היגיינה'] ? "✓" : "✗"}`,
+        `ערכת עזרה ראשונה: ${
+          params.data?.["ערכת עזרה ראשונה"] ? "✓" : "✗"
+        }\nפק"ל היגיינה: ${params.data?.['פק"ל היגיינה'] ? "✓" : "✗"}`,
     },
     { field: "פערי זיווד" },
     { field: "חוסרים נוספים" },
@@ -319,7 +349,7 @@ const GeneralReport = () => {
           collection(db, "tankStatus"),
           where("tankId", "==", tankId),
           orderBy("timestamp", "desc"),
-          limit(1),
+          limit(1)
         );
         const snapshot = await getDocs(q);
         if (snapshot.docs.length === 0) {
@@ -344,7 +374,7 @@ const GeneralReport = () => {
       const results = await Promise.all(promises);
       console.log("Firestore data:", results);
       const filteredResults = results.filter(
-        (result) => result.timestamp !== null,
+        (result) => result.timestamp !== null
       );
       setRowData(filteredResults);
     };
