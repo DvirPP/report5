@@ -164,12 +164,17 @@ const GeneralReport = () => {
       return { whiteSpace: "pre" };
     },
     cellRenderer: (params) => {
-      const field = params.colDef.field;
-      if (redColorRanges[field]) {
-        const { min, max, getValue } = redColorRanges[field];
-        const value = getValue(params);
-        const intensity = getRedIntensity(value, min, max);
-        if (typeof params.value !== "object") {
+      let text = params.value;
+      if (typeof text == "object") {
+        text = params.valueFormatted;
+      }
+      if (typeof text !== "object") {
+        const field = params.colDef.field;
+        if (redColorRanges[field]) {
+          const { min, max, getValue } = redColorRanges[field];
+          const value = getValue(params);
+          const intensity = getRedIntensity(value, min, max);
+
           return (
             <span
               style={{
@@ -178,10 +183,12 @@ const GeneralReport = () => {
                 borderRadius: "4px",
               }}
             >
-              {params.value}
+              {text}
             </span>
           );
         }
+
+        return <span>{text}</span>;
       }
     },
   };
