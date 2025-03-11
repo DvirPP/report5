@@ -178,6 +178,7 @@ const GeneralReport = () => {
           return (
             <span
               style={{
+                display: "inline-block",
                 backgroundColor: `rgba(255, 0, 0, ${intensity})`,
                 padding: "4px 8px",
                 borderRadius: "4px",
